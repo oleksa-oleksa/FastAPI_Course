@@ -1,5 +1,6 @@
 from enum import Enum
 from fastapi import FastAPI
+from typing import Optional
 
 app = FastAPI()
 
@@ -29,11 +30,12 @@ async def get_direction(direction_name: DirectionName):
     if direction_name == DirectionName.west:
         return {"Direction": direction_name, "sub": "Left"}
 
-
+# use query parameters to control what data is returned in endpoint responses.
 @app.get("/")
-async def read_all_books(skip_book: str):
+async def read_all_books(skip_book: Optional[str] = None):
     new_books = BOOKS.copy()
-    del new_books[skip_book]
+    if skip_book:
+        del new_books[skip_book]
     return new_books
 
 @app.get("/books/mybook")
@@ -47,3 +49,17 @@ async def read_book(book_id: int):
 @app.get("/{book_name}")
 async def read_book(book_name: str):
     return BOOKS[book_name]
+
+@app.post("/")
+async def create_book(book_title, book_author):
+    current_book_id = 0
+    # loop over all books and find the largest number
+    if len(BOOKS) > 0:
+        for book in BOOKS:
+            id = int(book.split('_')[-1])
+            if id > current_book_id:
+                current_book_id = id
+    
+    new_book_id = current_book_id + 1 
+    BOOKS[f'book_{new_book_id}'] = {"title": book_title, "author": book_author}
+    return BOOKS[f'book_{new_book_id}']
