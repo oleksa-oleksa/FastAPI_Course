@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 from enum import Enum
 from fastapi import FastAPI
 from typing import Optional
@@ -12,7 +11,6 @@ BOOKS = {
     "book_4": {"title": "Title Four", "author": "Author Four"},
     "book_5": {"title": "Title Five", "author": "Author Five"}
 }
-
 
 class DirectionName(str, Enum):
     north = "North"
