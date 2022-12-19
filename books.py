@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from enum import Enum
 from fastapi import FastAPI
 from typing import Optional
@@ -88,4 +89,3 @@ async def update_book(book_name: str, book_title: str, book_author: str):
 @app.delete("/{book_name}")
 async def delete_book(book_name):
     del BOOKS[book_name]
-    return f"Book_{book_name} deleted"
