@@ -42,13 +42,27 @@ async def read_all_books(skip_book: Optional[str] = None):
 async def read_favorite_book():
     return {"book_title": "My favorite book"}
 
+"""
 @app.get("/books/{book_id}")
 async def read_book(book_id: int):
     return {"book_title": book_id}
 
+# using Path Parameters for our API calls
 @app.get("/{book_name}")
 async def read_book(book_name: str):
     return BOOKS[book_name]
+"""
+
+# Using query params instead of path params.
+@app.get("/assignment/")
+async def read_book_assignment(book_name: str):
+    return BOOKS[book_name]
+
+# Using query params instead of path params.
+@app.delete("/assignment/")
+async def delete_book_assignment(book_name: str):
+    del BOOKS[book_name]
+    return BOOKS
 
 @app.post("/")
 async def create_book(book_title, book_author):
