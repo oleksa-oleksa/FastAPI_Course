@@ -10,6 +10,10 @@ BOOKS = {
     "book_5": {"title": "Title Five", "author": "Author Five"}
 }
 
+
+class DirectionName(str, Enum):
+    
+
 @app.get("/")
 async def read_all_books():
     return BOOKS
