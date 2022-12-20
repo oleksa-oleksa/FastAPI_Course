@@ -29,15 +29,37 @@ class Book(BaseModel):
 BOOKS = []
 
 @app.get("/")
-async def read_all_books():
+async def read_all_books(books_to_return : Optional[int] = None):
     if len(BOOKS) < 1:
         create_book_no_api()
+
+    if books_to_return and len(BOOKS) >= books_to_return > 0:
+        idx = 0
+        read_books = []
+        while idx < books_to_return:
+            read_books.append(BOOKS[idx])
+            idx += 1
+        return read_books
+
     return BOOKS
+
+@app.get("/books/{book_id}")
+async def read_book(book_id: UUID):
+    for book in BOOKS:
+        if book.id == book_id:
+            return book
+
 
 @app.post("/")
 async def create_book(book: Book):
     BOOKS.append(book)
     return book
+
+
+@app.put("/{book_id}")
+async def update_book(book_id: UUID, book: Book):
+    counter = 0
+    
 
 def create_book_no_api():
     book_1 = Book(id="3fa85f64-5717-4562-b3fc-2c963f66afa6",
