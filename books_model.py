@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, status
 from pydantic import BaseModel, Field
 from uuid import UUID
 from typing import Optional
@@ -30,6 +30,13 @@ class Book(BaseModel):
             }
         }
 
+class BookNoRating(BaseModel):
+    id: UUID
+    title: str = Field(min_length=1, max_length=100)
+    author: str = Field(min_length=1, max_length=50)
+    description: Optional[str] = Field(title="Description of the book",
+                             min_length=1, 
+                             max_length=100)
 
 BOOKS = []
 
@@ -67,8 +74,15 @@ async def read_book(book_id: UUID):
             return book
     raise raise_item_cannot_be_found_exception()
 
+# response model in parameter
+@app.get("/books/rating/{book_id}", response_model=BookNoRating)
+async def read_book_no_rating(book_id: UUID):
+    for book in BOOKS:
+        if book.id == book_id:
+            return book
+    raise raise_item_cannot_be_found_exception()
 
-@app.post("/")
+@app.post("/", status_code=status.HTTP_201_CREATED)
 async def create_book(book: Book):
     BOOKS.append(book)
     return book
