@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from uuid import UUID
 from typing import Optional
@@ -62,8 +62,24 @@ async def update_book(book_id: UUID, book: Book):
     for b in BOOKS:
         if b.id == book_id:
             BOOKS[counter] = book
+            return f"ID: {book_id} deleted!"
+        counter += 1
+
+
+@app.delete("/{book_id}")
+async def delete_book(book_id: UUID):
+    counter = 0
+    for b in BOOKS:
+        if b.id == book_id:
+            del BOOKS[counter]
             return BOOKS[counter]
         counter += 1
+    raise raise_item_cannot_be_found_exception()
+    
+def raise_item_cannot_be_found_exception():
+    return  HTTPException(status_code=404, 
+                          detail="Book id not found",
+                          headers="UUID not found")
 
 
 def create_book_no_api():
