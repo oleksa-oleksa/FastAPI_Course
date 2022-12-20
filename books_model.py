@@ -1,9 +1,13 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field
 from uuid import UUID
 from typing import Optional
 
 app = FastAPI()
+
+class NegativeNumberException(Exception):
+    def __init__(self, books_to_return):
+        self.books_to_return = books_to_return
 
 class Book(BaseModel):
     id: UUID
@@ -28,6 +32,9 @@ class Book(BaseModel):
 
 BOOKS = []
 
+@app.exception_handler(NegativeNumberException):
+async def negative_number_exception_handler(request: Request, exception: NegativeNumberException)
+
 @app.get("/")
 async def read_all_books(books_to_return : Optional[int] = None):
     if len(BOOKS) < 1:
@@ -48,6 +55,7 @@ async def read_book(book_id: UUID):
     for book in BOOKS:
         if book.id == book_id:
             return book
+    raise raise_item_cannot_be_found_exception()
 
 
 @app.post("/")
@@ -64,6 +72,7 @@ async def update_book(book_id: UUID, book: Book):
             BOOKS[counter] = book
             return f"ID: {book_id} deleted!"
         counter += 1
+    raise raise_item_cannot_be_found_exception()
 
 
 @app.delete("/{book_id}")
@@ -75,7 +84,7 @@ async def delete_book(book_id: UUID):
             return BOOKS[counter]
         counter += 1
     raise raise_item_cannot_be_found_exception()
-    
+
 def raise_item_cannot_be_found_exception():
     return  HTTPException(status_code=404, 
                           detail="Book id not found",
