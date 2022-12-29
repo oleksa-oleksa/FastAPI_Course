@@ -7,7 +7,7 @@ from database import SessionLocal, engine
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from datetime import datetime, timedelta
-from jose import jwt
+from jose import jwt, JWSError
 
 SECRET_KEY = "gkjhsdnti43985ujrjkngoqewi48093rn^%$674g3jkrh3"
 ALGORITHM = "HS256"
@@ -60,6 +60,16 @@ def create_access_token(username: str, user_id: int, expires_delta = Optional[ti
 
     return jwt.encode(encode, SECRET_KEY)
 
+async def get_current_user(token: str = Depends(oauth2_bearer)):
+    try: 
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        user_id: int = payload.get("id")
+        if username is None or user_id is None:
+            raise HTTPException(status_code=404, detail="User not found!")
+        return {"username": username, "id": user_id}
+    except JWSError:
+
 @app.post("/create/user")
 async def create_new_user(new_user: CreateUser, db: Session = Depends(get_db)):
     create_user_model = models.Users()
@@ -79,4 +89,9 @@ async def login_for_access_tolen(form_data: OAuth2PasswordRequestForm = Depends(
 
     if not user: 
         raise HTTPException(status_code=404, detail="User not found!")
-    return "User validated"
+    token_expires = timedelta(minutes=20)
+    token = create_access_token(user.username, 
+                                user.id, 
+                                expires_delta=token_expires)
+    return {"token": token}
+
