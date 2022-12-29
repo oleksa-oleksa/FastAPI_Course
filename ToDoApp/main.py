@@ -47,7 +47,7 @@ async def create_todo(todo: Todo, db = Session = Depends(get_db)):
     db.add(todo_model)
     db.commit()
 
-    successful_response(201)
+    return successful_response(201)
 
 @app.put("/")
 async def update_todo(todo_id: int, todo: Todo, db: Session = Depends(get_db)):
@@ -64,7 +64,7 @@ async def update_todo(todo_id: int, todo: Todo, db: Session = Depends(get_db)):
     db.add()
     db.commit()
 
-    successful_response(201)
+    return successful_response(201)
 
 @app.delete("/{todo_id}")
 async def delete_todo(todo_id: int, db: Session = Depends(get_db)):
@@ -77,7 +77,7 @@ async def delete_todo(todo_id: int, db: Session = Depends(get_db)):
 
     db.commit()
 
-    successful_response(201)
+    return successful_response(201)
 
 def http_exception():
     raise HTTPException(status_code=404, detail="Todo ID not found!")
