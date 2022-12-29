@@ -1,11 +1,11 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from pydantic import BaseModel 
 from typing import Optional
 import models
 from passlib.context import CryptContext
 from database import SessionLocal, engine
 from sqlalchemy.orm import Session
-
+from fastapi.security import OAuth2PasswordRequestForm
 
 class CreateUser(BaseModel):
     username: str
@@ -28,6 +28,20 @@ def get_db():
 def get_password_hash(password):
     return bcrypt_context.hash(password)
 
+def authentificate_user(username: str, password: str, db: Session = Depends(get_db)):
+    user = db.query(models.Users).filter(models.Users.username == username)
+
+    if not user:
+        return False
+    if not verify_password(password, user.hashed_password):
+        return False
+    return user
+
+
+def verify_password(plain_password, hash_password):
+    return bcrypt_context.verify(plain_password, hash_password)
+
+
 @app.post("/create/user")
 async def create_new_user(new_user: CreateUser, db: Session = Depends(get_db)):
     create_user_model = models.Users()
@@ -39,3 +53,11 @@ async def create_new_user(new_user: CreateUser, db: Session = Depends(get_db)):
 
     db.add(create_new_user)
     db.commit()
+
+@app.post("/token")
+async def login_for_access_tolen(form_data: OAuth2PasswordRequestForm = Depends(),
+                                 db: Session = Depends(get_db)):
+    user = authentificate_user(form_data.username, form_data.passsword, db)
+
+    if not user: 
+        raise HTTPException(status_code=404, detail="User not found!")
