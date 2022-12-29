@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, status
 from pydantic import BaseModel 
 from typing import Optional
 import models
@@ -66,9 +66,10 @@ async def get_current_user(token: str = Depends(oauth2_bearer)):
         username: str = payload.get("sub")
         user_id: int = payload.get("id")
         if username is None or user_id is None:
-            raise HTTPException(status_code=404, detail="User not found!")
+            raise get_user_exception()
         return {"username": username, "id": user_id}
     except JWSError:
+        raise get_user_exception()
 
 @app.post("/create/user")
 async def create_new_user(new_user: CreateUser, db: Session = Depends(get_db)):
@@ -88,10 +89,30 @@ async def login_for_access_tolen(form_data: OAuth2PasswordRequestForm = Depends(
     user = authentificate_user(form_data.username, form_data.passsword, db)
 
     if not user: 
-        raise HTTPException(status_code=404, detail="User not found!")
+        raise token_exception()
     token_expires = timedelta(minutes=20)
     token = create_access_token(user.username, 
                                 user.id, 
                                 expires_delta=token_expires)
     return {"token": token}
 
+# Custom exceptions
+def http_exception_user_not_found():
+    raise HTTPException(status_code=404, detail="User not found!")
+
+def get_user_exception():
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"}
+    )
+
+    return credentials_exception
+
+def token_exception():
+    token_exception_response = HTTPException(
+        sstatus_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Incorrect username or password",
+        headers={"WWW-Authenticate": "Bearer"}
+    )
+    return token_exception_response
