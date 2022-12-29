@@ -37,7 +37,7 @@ async def read_todo(todo_id: int, db: Session = Depends(get_db)):
 
 
 @app.post("/")
-async def create_todo(todo: Todo, db = Session = Depends(get_db)):
+async def create_todo(todo: Todo, db: Session = Depends(get_db)):
     todo_model = models.Todos()
     todo_model.title = todo.title
     todo_model.description = todo.description
