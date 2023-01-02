@@ -4,11 +4,13 @@ from database import engine, Base, SessionLocal
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
 from typing import Optional
-import auth as auth
+from routers import auth
 
 app = FastAPI()
 
 Base.metadata.create_all(bind=engine)
+
+app.include_router(auth.router)
 
 def get_db():
     try:
