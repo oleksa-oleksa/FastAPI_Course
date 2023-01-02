@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, APIRouter
 from pydantic import BaseModel 
 from typing import Optional
 import models
@@ -23,7 +23,8 @@ bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 oauth2_bearer = OAuth2PasswordBearer(tokenUrl="token")
 
-app = FastAPI()
+# app = FastAPI()
+router = APIRouter()
 
 def get_db():
     try:
@@ -85,7 +86,7 @@ async def create_new_user(new_user: CreateUser, db: Session = Depends(get_db)):
     db.commit()
 
 @app.post("/token")
-async def login_for_access_tolen(form_data: OAuth2PasswordRequestForm = Depends(),
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(),
                                  db: Session = Depends(get_db)):
     user = authentificate_user(form_data.username, form_data.passsword, db)
 
