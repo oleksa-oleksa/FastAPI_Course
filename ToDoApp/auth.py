@@ -49,7 +49,8 @@ def verify_password(plain_password, hash_password):
     return bcrypt_context.verify(plain_password, hash_password)
 
 
-def create_access_token(username: str, user_id: int, expires_delta = Optional[timedelta] = None):
+def create_access_token(username: str, user_id: int, 
+                        expires_delta: Optional[timedelta] = None):
     encode = {"sub": username, "id": user_id}
 
     if expires_delta:
