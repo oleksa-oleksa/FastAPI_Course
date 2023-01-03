@@ -2,7 +2,9 @@ import sys
 sys.path.append("..")
 
 from typing import Optional
-from fastapi import Depends, HTTPException, APIRouter
+from fastapi import Depends, HTTPException, APIRouter, Request, Form
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 import models
 from database import engine, SessionLocal
 from sqlalchemy.orm import Session
@@ -16,6 +18,8 @@ router = APIRouter(
 )
 
 models.Base.metadata.create_all(bind=engine)
+templates = Jinja2Templates(directory="templates")
+
 def get_db():
     try:
         db = SessionLocal()
@@ -29,17 +33,20 @@ class Todo(BaseModel):
     priority: int = Field(gt=0, ls=3, description="Priority must be between 0 and 3")
     complete: bool
 
+@router.get("/test")
+async def test(request: Request):
+    return templates.TemplateResponse("home.html", context={"request": request})
+
 @router.get("/")
 async def read_all(db : Session = Depends(get_db)):
     return db.query(models.Todos).all()
 
 
-@router.get("/todos/user")
-async def read_all_by_user(user: dict = Depends(auth.get_current_user), db: Session = Depends(get_db)):
-    if user is None:
-        raise auth.get_user_exception()
-    return db.query(models.Todos).filter(models.Todos.owner_id == user.get("id")).all()
+@router.get("/", response_class=HTMLResponse)
+async def read_all_by_user(request: Request, db: Session = Depends(get_db)):
+    todos = db.query(models.Todos).filter(models.Todos.owner_id == 1).all()
 
+    return templates.TemplateResponse("home.html", context={"request": request, "todos": todos})
 
 
 @router.get("/todo/{todo_id}")
@@ -54,6 +61,11 @@ async def read_todo(todo_id: int, user: dict = Depends(auth.get_current_user), d
     if todo_model is not None:
         return todo_model
     http_exception()
+
+
+@router.post("/add-todo", response_class=HTMLResponse)
+async def create_new_todo(request: Request, title: str = Form(...), description: str = Form(...),
+                          proirity: int = Form(...), db: Session = Depends(get_db)):
 
 
 @router.post("/")

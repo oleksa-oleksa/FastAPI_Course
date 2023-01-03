@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from datetime import datetime, timedelta
 from jose import jwt, JWSError
-import auth
+from routers import auth
 
 router = APIRouter(
     prefix="/users",
