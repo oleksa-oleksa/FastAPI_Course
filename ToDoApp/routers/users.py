@@ -62,18 +62,37 @@ async def get_user_by_query(user_id: int, db: Session = Depends(get_db)):
 
 # Enhance users.py to be able to modify their current user's password, if passed by authentication
 router.put("/user/password")
-async def user_password_change(user_verificatrion: UserVerification,
+async def user_password_change(user_verification: UserVerification,
                                user: dict = Depends(auth.get_current_user),
-                            db: Session = Depends(get_db)):
+                               db: Session = Depends(get_db)):
     if user is None:
         raise auth.get_user_exception()
     
     user_model = db.query(models.Users).filter(models.Users.id == user.get("id")).first()
 
     if user_model is not None:
-        if user_verificatrion.username == user_model.username and \
-        auth.verify_password(user_verificatrion.old_password, user_model.hashed_password):
-            pass
+        if user_verification.username == user_model.username and \
+        auth.verify_password(user_verification.old_password, user_model.hashed_password):
+            user_model.hashed_password = auth.get_password_hash(user_verification.new_password)
+            db.add(user_model)
+            db.commit()
+            return "successful"
+    return "Invalid user or request"
 
 
 # Enhance users.py to be able to delete their own user.
+router.delete("/user")
+async def delete_own_user(user: dict = Depends(auth.get_current_user),
+                          db: Session = Depends(get_db)):
+    if user is None:
+        raise auth.get_user_exception()
+    
+    user_model = db.query(models.Users).filter(models.Users.id == user.get("id")).first()
+
+    if user_model is None:
+        return "Invalid user ID!"
+
+    db.query(models.Users).filter(models.Users.id == user.get("id")).delete()
+    db.commit()
+
+    return f"User {user.get('id')} deleted!"
