@@ -4,6 +4,8 @@ sys.path.append("..")
 from typing import Optional
 from fastapi import Depends, HTTPException, APIRouter, Request, Form
 from fastapi.responses import HTMLResponse
+from starlette.responses import RedirectResponse
+from starlette import status
 from fastapi.templating import Jinja2Templates
 import models
 from database import engine, SessionLocal
@@ -60,12 +62,25 @@ async def read_todo(todo_id: int, user: dict = Depends(auth.get_current_user), d
 
     if todo_model is not None:
         return todo_model
-    http_exception()
+    raise auth.http_exception()
 
 
 @router.post("/add-todo", response_class=HTMLResponse)
 async def create_new_todo(request: Request, title: str = Form(...), description: str = Form(...),
                           proirity: int = Form(...), db: Session = Depends(get_db)):
+    todos_model = models.Todos()
+    todos_model.title = title
+    todos_model.description = description
+    todos_model.priority = proirity
+    todos_model.complete = False
+    todos_model.owner_id = 1
+
+    db.add(todos_model)
+    db.commit()
+
+    return RedirectResponse(url="/todos", status_code=status.HTTP_302_FOUND)
+
+
 
 
 @router.post("/")
