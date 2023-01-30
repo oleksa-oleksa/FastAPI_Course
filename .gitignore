@@ -1,3 +1,4 @@
 fastapienv/*
 **/__pycache__/*
 **/*.db
+venv/*
