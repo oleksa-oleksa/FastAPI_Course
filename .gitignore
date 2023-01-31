@@ -1,4 +1,7 @@
 fastapienv/*
 **/__pycache__/*
 **/*.db
-venv/*
+**/venv/*
+.DS_Store
+*/.vscode/*
+
